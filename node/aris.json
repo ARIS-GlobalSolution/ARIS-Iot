@@ -1,0 +1,892 @@
+[
+    {
+        "id": "2f7853bde0a29107",
+        "type": "tab",
+        "label": "Fluxo 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "136b3baf928b336d",
+        "type": "mqtt in",
+        "z": "2f7853bde0a29107",
+        "name": "MQTT ARIS Temperatura",
+        "topic": "aris/temperatura",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "7bf3ab0ba98a9e85",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 690,
+        "y": 140,
+        "wires": [
+            [
+                "158d3a6865d9a631"
+            ]
+        ]
+    },
+    {
+        "id": "ec8c39857f7d4b0c",
+        "type": "mqtt in",
+        "z": "2f7853bde0a29107",
+        "name": "MQTT ARIS Umidade",
+        "topic": "aris/umidade",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "7bf3ab0ba98a9e85",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 680,
+        "y": 260,
+        "wires": [
+            [
+                "ecf1b88985752065"
+            ]
+        ]
+    },
+    {
+        "id": "d91a0d137107dfa1",
+        "type": "inject",
+        "z": "2f7853bde0a29107",
+        "name": "Inject",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "10",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 630,
+        "y": 80,
+        "wires": [
+            [
+                "97539a16c70a5eec"
+            ]
+        ]
+    },
+    {
+        "id": "97539a16c70a5eec",
+        "type": "http request",
+        "z": "2f7853bde0a29107",
+        "name": "",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "https://api.openweathermap.org/data/2.5/weather?q=Sao%20Paulo&appid=b205a2ef99e9f36e6290ae1a27a91dee&units=metric",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 800,
+        "y": 80,
+        "wires": [
+            [
+                "6b5a150da4f69d64"
+            ]
+        ]
+    },
+    {
+        "id": "6b5a150da4f69d64",
+        "type": "function",
+        "z": "2f7853bde0a29107",
+        "name": "Extrair temp externa",
+        "func": "msg.payload = msg.payload.main.temp;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1020,
+        "y": 80,
+        "wires": [
+            [
+                "ac7ed2e61f980a84"
+            ]
+        ]
+    },
+    {
+        "id": "54f45067caf8ee8d",
+        "type": "function",
+        "z": "2f7853bde0a29107",
+        "name": "function nivel",
+        "func": "let nivel = Number(msg.payload);\n\nif (isNaN(nivel)) {\n    msg.payload = \"Sem dados ainda\";\n    return msg;\n}\n\nif (nivel > 20) {\n    msg.payload = \"Reservatorio Baixo\";\n}\nelse {\n    msg.payload = \"Reservatorio OK\";\n}\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 910,
+        "y": 200,
+        "wires": [
+            [
+                "3097f55b9cd894e6"
+            ]
+        ]
+    },
+    {
+        "id": "809665ea80abb823",
+        "type": "function",
+        "z": "2f7853bde0a29107",
+        "name": "Salvar dados de temperatura",
+        "func": "let temp = parseFloat(msg.payload);\n\nif (isNaN(temp)) {\n    return null;\n}\n\nmsg.topic = \"INSERT INTO aris (temperatura) VALUES (?)\";\nmsg.payload = [temp];\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 960,
+        "y": 320,
+        "wires": [
+            [
+                "1f3901a0e9e01b45"
+            ]
+        ]
+    },
+    {
+        "id": "158d3a6865d9a631",
+        "type": "function",
+        "z": "2f7853bde0a29107",
+        "name": "function temperatura",
+        "func": "let temp = Number(msg.payload);\n\nif (isNaN(temp)) {\n    msg.payload = \"Sem dados ainda\";\n    return msg;\n}\n\nif (temp > 30) {\n    msg.payload = \"Temperatura Alta\";\n}\nelse if (temp < 20) {\n    msg.payload = \"Temperatura Baixa\";\n}\nelse {\n    msg.payload = \"Temperatura Ideal\";\n}\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 940,
+        "y": 140,
+        "wires": [
+            [
+                "b2a917c8ebfc4330"
+            ]
+        ]
+    },
+    {
+        "id": "b2a917c8ebfc4330",
+        "type": "ui_text",
+        "z": "2f7853bde0a29107",
+        "group": "11df9a0cbe18516e",
+        "order": 4,
+        "width": 0,
+        "height": 0,
+        "name": "Alerta temperatura",
+        "label": "",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 1170,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "3097f55b9cd894e6",
+        "type": "ui_text",
+        "z": "2f7853bde0a29107",
+        "group": "11df9a0cbe18516e",
+        "order": 5,
+        "width": 0,
+        "height": 0,
+        "name": "Alerta Nivel de água",
+        "label": "",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 1140,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "6c670a3521e79edb",
+        "type": "debug",
+        "z": "2f7853bde0a29107",
+        "name": "Dados temperatura",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1390,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "2e8c2f17b536c897",
+        "type": "mqtt in",
+        "z": "2f7853bde0a29107",
+        "name": "MQTT ARIS Nivel Agua",
+        "topic": "aris/nivel_agua",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "7bf3ab0ba98a9e85",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 680,
+        "y": 200,
+        "wires": [
+            [
+                "54f45067caf8ee8d"
+            ]
+        ]
+    },
+    {
+        "id": "1f3901a0e9e01b45",
+        "type": "sqlite",
+        "z": "2f7853bde0a29107",
+        "mydb": "fb54210a5c088395",
+        "sqlquery": "msg.topic",
+        "sql": "",
+        "name": "",
+        "x": 1170,
+        "y": 320,
+        "wires": [
+            [
+                "6c670a3521e79edb"
+            ]
+        ]
+    },
+    {
+        "id": "ecf1b88985752065",
+        "type": "function",
+        "z": "2f7853bde0a29107",
+        "name": "function umidade",
+        "func": "let umidade = Number(msg.payload);\n\nif (isNaN(umidade)) {\n    msg.payload = \"Sem dados ainda\";\n    return msg;\n}\n\nif (umidade < 40) {\n    msg.payload = \"Umidade Baixa\";\n}\nelse if (umidade > 80) {\n    msg.payload = \"Umidade Alta\";\n}\nelse {\n    msg.payload = \"Umidade Ideal\";\n}\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 930,
+        "y": 260,
+        "wires": [
+            [
+                "7f86ae383a5d445d"
+            ]
+        ]
+    },
+    {
+        "id": "7f86ae383a5d445d",
+        "type": "ui_text",
+        "z": "2f7853bde0a29107",
+        "group": "11df9a0cbe18516e",
+        "order": 5,
+        "width": 0,
+        "height": 0,
+        "name": "Alerta Umidade",
+        "label": "",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 1160,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "74fc24d0293a0e17",
+        "type": "mqtt in",
+        "z": "2f7853bde0a29107",
+        "name": "MQTT ARIS Temperatura",
+        "topic": "aris/temperatura",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "7bf3ab0ba98a9e85",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 1390,
+        "y": 140,
+        "wires": [
+            [
+                "ba9f98447d207e75"
+            ]
+        ]
+    },
+    {
+        "id": "feed4fe43fc51c49",
+        "type": "mqtt in",
+        "z": "2f7853bde0a29107",
+        "name": "MQTT ARIS Umidade",
+        "topic": "aris/umidade",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "7bf3ab0ba98a9e85",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 1380,
+        "y": 260,
+        "wires": [
+            [
+                "71cfba2af446ef26"
+            ]
+        ]
+    },
+    {
+        "id": "6aabf2be7bcb31cf",
+        "type": "mqtt in",
+        "z": "2f7853bde0a29107",
+        "name": "MQTT ARIS Nivel Agua",
+        "topic": "aris/nivel_agua",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "7bf3ab0ba98a9e85",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 1380,
+        "y": 200,
+        "wires": [
+            [
+                "beee37fbfc6ccea8"
+            ]
+        ]
+    },
+    {
+        "id": "ac7ed2e61f980a84",
+        "type": "ui_gauge",
+        "z": "2f7853bde0a29107",
+        "name": "Temperatura Externa",
+        "group": "11df9a0cbe18516e",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "Temperatura Externa",
+        "label": "°C",
+        "format": "{{value}}",
+        "min": 0,
+        "max": 50,
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "diff": false,
+        "className": "",
+        "x": 1260,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "ba9f98447d207e75",
+        "type": "ui_gauge",
+        "z": "2f7853bde0a29107",
+        "name": "Temperatura",
+        "group": "11df9a0cbe18516e",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "Temperatura",
+        "label": "°C",
+        "format": "{{value}}",
+        "min": 0,
+        "max": 50,
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "diff": false,
+        "className": "",
+        "x": 1590,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "beee37fbfc6ccea8",
+        "type": "ui_gauge",
+        "z": "2f7853bde0a29107",
+        "name": "Nível da Água",
+        "group": "11df9a0cbe18516e",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "Nível da Água",
+        "label": "cm",
+        "format": "{{value}}",
+        "min": 0,
+        "max": 50,
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "diff": false,
+        "className": "",
+        "x": 1590,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "71cfba2af446ef26",
+        "type": "ui_gauge",
+        "z": "2f7853bde0a29107",
+        "name": "Umidade",
+        "group": "11df9a0cbe18516e",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "Umidade",
+        "label": "%",
+        "format": "{{value}}",
+        "min": 0,
+        "max": 100,
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "diff": false,
+        "className": "",
+        "x": 1580,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "edcc356e03f4a46d",
+        "type": "mqtt in",
+        "z": "2f7853bde0a29107",
+        "name": "MQTT ARIS Temperatura",
+        "topic": "aris/temperatura",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "7bf3ab0ba98a9e85",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 690,
+        "y": 320,
+        "wires": [
+            [
+                "809665ea80abb823"
+            ]
+        ]
+    },
+    {
+        "id": "6f3688baf899b065",
+        "type": "mqtt in",
+        "z": "2f7853bde0a29107",
+        "name": "MQTT ARIS Umidade",
+        "topic": "aris/umidade",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "7bf3ab0ba98a9e85",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 680,
+        "y": 440,
+        "wires": [
+            [
+                "672486655d88b976"
+            ]
+        ]
+    },
+    {
+        "id": "d405d814dd49a7a2",
+        "type": "mqtt in",
+        "z": "2f7853bde0a29107",
+        "name": "MQTT ARIS Nivel Agua",
+        "topic": "aris/nivel_agua",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "7bf3ab0ba98a9e85",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 680,
+        "y": 380,
+        "wires": [
+            [
+                "c6ff29ecf3a11ca5"
+            ]
+        ]
+    },
+    {
+        "id": "c6ff29ecf3a11ca5",
+        "type": "function",
+        "z": "2f7853bde0a29107",
+        "name": "Salvar dados nivel de água",
+        "func": "let nivel = parseFloat(msg.payload);\n\nif (isNaN(nivel)) {\n    return null;\n}\n\nmsg.topic = \"INSERT INTO aris (nivel_agua) VALUES (?)\";\nmsg.payload = [nivel];\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 960,
+        "y": 380,
+        "wires": [
+            [
+                "4214f6a36adbd5f5"
+            ]
+        ]
+    },
+    {
+        "id": "672486655d88b976",
+        "type": "function",
+        "z": "2f7853bde0a29107",
+        "name": "Salvar dados de umidade",
+        "func": "let umidade = parseFloat(msg.payload);\n\nif (isNaN(umidade)) {\n    return null;\n}\n\nmsg.topic = \"INSERT INTO aris (umidade) VALUES (?)\";\nmsg.payload = [umidade];\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 950,
+        "y": 440,
+        "wires": [
+            [
+                "d88facd818a6e80f"
+            ]
+        ]
+    },
+    {
+        "id": "4214f6a36adbd5f5",
+        "type": "sqlite",
+        "z": "2f7853bde0a29107",
+        "mydb": "fb54210a5c088395",
+        "sqlquery": "msg.topic",
+        "sql": "",
+        "name": "",
+        "x": 1170,
+        "y": 380,
+        "wires": [
+            [
+                "2f2f24bffc7c6753"
+            ]
+        ]
+    },
+    {
+        "id": "d88facd818a6e80f",
+        "type": "sqlite",
+        "z": "2f7853bde0a29107",
+        "mydb": "fb54210a5c088395",
+        "sqlquery": "msg.topic",
+        "sql": "",
+        "name": "",
+        "x": 1170,
+        "y": 440,
+        "wires": [
+            [
+                "e8cd3cf8708b8d43"
+            ]
+        ]
+    },
+    {
+        "id": "2f2f24bffc7c6753",
+        "type": "debug",
+        "z": "2f7853bde0a29107",
+        "name": "Dados nivel de água",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1400,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "e8cd3cf8708b8d43",
+        "type": "debug",
+        "z": "2f7853bde0a29107",
+        "name": "Dados de umidade",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1390,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "682daa4ebd1c0105",
+        "type": "function",
+        "z": "2f7853bde0a29107",
+        "name": "tabela",
+        "func": "msg.topic = `\nCREATE TABLE IF NOT EXISTS aris (\n    id INTEGER PRIMARY KEY AUTOINCREMENT,\n    temperatura REAL,\n    umidade REAL,\n    nivel_agua REAL,\n    data TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n)\n`;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 910,
+        "y": 500,
+        "wires": [
+            [
+                "7e3d94eccf59cf66"
+            ]
+        ]
+    },
+    {
+        "id": "a9ccbaf4cf22f519",
+        "type": "debug",
+        "z": "2f7853bde0a29107",
+        "name": "tabela",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1370,
+        "y": 500,
+        "wires": []
+    },
+    {
+        "id": "7e3d94eccf59cf66",
+        "type": "sqlite",
+        "z": "2f7853bde0a29107",
+        "mydb": "fb54210a5c088395",
+        "sqlquery": "msg.topic",
+        "sql": "",
+        "name": "",
+        "x": 1190,
+        "y": 500,
+        "wires": [
+            [
+                "a9ccbaf4cf22f519"
+            ]
+        ]
+    },
+    {
+        "id": "17271ad5da1dfb7e",
+        "type": "function",
+        "z": "2f7853bde0a29107",
+        "name": "mostrar os dados",
+        "func": "msg.topic = \"SELECT * FROM aris ORDER BY id DESC LIMIT 20;\";\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 950,
+        "y": 560,
+        "wires": [
+            [
+                "1cfc4912c3bf14c7"
+            ]
+        ]
+    },
+    {
+        "id": "1cfc4912c3bf14c7",
+        "type": "sqlite",
+        "z": "2f7853bde0a29107",
+        "mydb": "fb54210a5c088395",
+        "sqlquery": "msg.topic",
+        "sql": "",
+        "name": "",
+        "x": 1190,
+        "y": 560,
+        "wires": [
+            [
+                "44c01a3aa1618995"
+            ]
+        ]
+    },
+    {
+        "id": "44c01a3aa1618995",
+        "type": "debug",
+        "z": "2f7853bde0a29107",
+        "name": "mostrar os dados",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1410,
+        "y": 560,
+        "wires": []
+    },
+    {
+        "id": "5cb31bbc7c381768",
+        "type": "inject",
+        "z": "2f7853bde0a29107",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 680,
+        "y": 500,
+        "wires": [
+            [
+                "682daa4ebd1c0105"
+            ]
+        ]
+    },
+    {
+        "id": "64ec6221945aff24",
+        "type": "inject",
+        "z": "2f7853bde0a29107",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 680,
+        "y": 560,
+        "wires": [
+            [
+                "17271ad5da1dfb7e"
+            ]
+        ]
+    },
+    {
+        "id": "7bf3ab0ba98a9e85",
+        "type": "mqtt-broker",
+        "name": "",
+        "broker": "58d56f41a21e404084a39947b30d44ab.s1.eu.hivemq.cloud",
+        "port": "8883",
+        "tls": "",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": true,
+        "protocolVersion": 4,
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "11df9a0cbe18516e",
+        "type": "ui_group",
+        "name": "Sensores",
+        "tab": "efecc906deef95d3",
+        "order": 1,
+        "disp": true,
+        "width": 6,
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "fb54210a5c088395",
+        "type": "sqlitedb",
+        "db": "aris.db",
+        "mode": "RWC"
+    },
+    {
+        "id": "efecc906deef95d3",
+        "type": "ui_tab",
+        "name": "Estufa",
+        "icon": "dashboard",
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "96aa0ba06c11dfc3",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-dashboard": "3.6.6",
+            "node-red-node-sqlite": "2.0.1"
+        }
+    }
+]
